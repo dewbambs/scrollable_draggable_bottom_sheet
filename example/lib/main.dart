@@ -107,6 +107,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 _value = value + 20;
               });
             },
+            onPanelSlideWithoutSnap: (value) {
+              print("the value of this non snap is ---------> $value");
+            },
             initialChild: initialChild,
           ),
         ],

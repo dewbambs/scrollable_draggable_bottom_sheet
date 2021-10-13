@@ -17,6 +17,7 @@ class ScrollableDraggableBottomSheet extends StatefulWidget {
     required this.initialChild,
     this.switchChildDuration = const Duration(milliseconds: 300),
     this.onPanelSlide,
+    this.onPanelSlideWithoutSnap,
   }) : super(key: key);
 
   final ScrollableDraggableBottomSheetController? controller;
@@ -28,9 +29,16 @@ class ScrollableDraggableBottomSheet extends StatefulWidget {
 
   final double maxHeight;
 
+  /// When panel [snapHeight] is provided. And panel is moving from
+  /// the snap point to the top position
   final OnPanelSlide? onPanelSlideFromSnapPointToMax;
 
+  /// it provides logical height of the draggable panel
   final OnPanelSlide? onPanelSlide;
+
+  /// it triggers when panel slides without a snap point.
+  /// returns animationController value that is 0..1
+  final OnPanelSlide? onPanelSlideWithoutSnap;
 
   final Widget initialChild;
 
@@ -77,6 +85,10 @@ class _ScrollableDraggableBottomSheetState extends State<ScrollableDraggableBott
         }
 
         if (widget.onPanelSlide != null) widget.onPanelSlide!(_heightAnimation.value);
+
+        if (widget.onPanelSlideWithoutSnap != null && _sheetMode == SheetMode.noSnap) {
+          widget.onPanelSlideWithoutSnap!(_animationController.value);
+        }
 
         // start the scrolling
         if (_sheetMode == SheetMode.snap) {

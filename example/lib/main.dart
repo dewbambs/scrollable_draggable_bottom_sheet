@@ -30,6 +30,8 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   late ScrollableDraggableBottomSheetController _controller;
 
+  double _value = 200;
+
   @override
   void initState() {
     super.initState();
@@ -49,6 +51,17 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
 
+    Widget _secondChild = ListView.builder(
+      primary: false,
+      shrinkWrap: true,
+      itemCount: 10,
+      itemBuilder: (context, index) => const ListTile(
+        title: Text("second screen"),
+        isThreeLine: true,
+        subtitle: Text("2nd subtitle"),
+      ),
+    );
+
     return Scaffold(
       body: Stack(
         children: [
@@ -63,7 +76,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   maxHeight: MediaQuery.of(context).size.height * 0.85,
                   duration: const Duration(milliseconds: 600),
                   curve: Curves.easeInOut,
-                  child: const Text("hello everyone"),
+                  child: _secondChild,
                 );
               },
               child: const Text("No snap"),
@@ -80,6 +93,7 @@ class _MyHomePageState extends State<MyHomePage> {
               child: const Text("Snap mode"),
             ),
           ),
+          Positioned(bottom: _value, right: 20, child: IconButton(onPressed: () {}, icon: const Icon(Icons.ac_unit))),
           ScrollableDraggableBottomSheet(
             controller: _controller,
             minHeight: MediaQuery.of(context).size.height * 0.2,
@@ -87,6 +101,11 @@ class _MyHomePageState extends State<MyHomePage> {
             maxHeight: MediaQuery.of(context).size.height * 0.8,
             onPanelSlideFromSnapPointToMax: (value) {
               // print("the value of this is ------------------> $value");
+            },
+            onPanelSlide: (value) {
+              setState(() {
+                _value = value + 20;
+              });
             },
             initialChild: initialChild,
           ),

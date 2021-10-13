@@ -2,19 +2,22 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+enum SheetMode { snap, noSnap }
+
 typedef OnPanelSlide = void Function(double position);
 
 class ScrollableDraggableBottomSheet extends StatefulWidget {
-  const ScrollableDraggableBottomSheet(
-      {Key? key,
-      this.controller,
-      this.minHeight = 120,
-      required this.maxHeight,
-      this.snapHeight,
-      this.onPanelSlideFromSnapPointToMax,
-      required this.initialChild,
-      this.switchChildDuration = const Duration(milliseconds: 300)})
-      : super(key: key);
+  const ScrollableDraggableBottomSheet({
+    Key? key,
+    this.controller,
+    this.minHeight = 120,
+    required this.maxHeight,
+    required this.snapHeight,
+    this.onPanelSlideFromSnapPointToMax,
+    required this.initialChild,
+    this.switchChildDuration = const Duration(milliseconds: 300),
+    this.onPanelSlide,
+  }) : super(key: key);
 
   final ScrollableDraggableBottomSheetController? controller;
 
@@ -26,6 +29,8 @@ class ScrollableDraggableBottomSheet extends StatefulWidget {
   final double maxHeight;
 
   final OnPanelSlide? onPanelSlideFromSnapPointToMax;
+
+  final OnPanelSlide? onPanelSlide;
 
   final Widget initialChild;
 
@@ -44,6 +49,8 @@ class _ScrollableDraggableBottomSheetState extends State<ScrollableDraggableBott
   late Animation _heightAnimation;
 
   ScrollPhysics _scrollPhysics = const NeverScrollableScrollPhysics();
+
+  SheetMode _sheetMode = SheetMode.snap;
 
   late Widget _selectedChild;
 
@@ -67,6 +74,25 @@ class _ScrollableDraggableBottomSheetState extends State<ScrollableDraggableBott
             _heightTween.begin == widget.snapHeight &&
             _heightTween.end == widget.maxHeight) {
           widget.onPanelSlideFromSnapPointToMax!(_animationController.value);
+        }
+
+        if (widget.onPanelSlide != null) widget.onPanelSlide!(_heightAnimation.value);
+
+        // start the scrolling
+        if (_sheetMode == SheetMode.snap) {
+          if (widget.maxHeight == _heightAnimation.value) {
+            _scrollcontroller.animateTo(1, duration: const Duration(milliseconds: 1), curve: Curves.linear);
+            setState(() => _scrollPhysics = const BouncingScrollPhysics());
+          } else {
+            setState(() => _scrollPhysics = const NeverScrollableScrollPhysics());
+          }
+        } else {
+          if (_animationController.isCompleted) {
+            _scrollcontroller.animateTo(1, duration: const Duration(milliseconds: 1), curve: Curves.linear);
+            setState(() => _scrollPhysics = const BouncingScrollPhysics());
+          } else {
+            setState(() => _scrollPhysics = const NeverScrollableScrollPhysics());
+          }
         }
       });
 
@@ -109,7 +135,6 @@ class _ScrollableDraggableBottomSheetState extends State<ScrollableDraggableBott
           builder: (context, child) {
             return Container(
               height: _heightAnimation.value,
-              // padding: const EdgeInsets.symmetric(horizontal: 32),
               decoration: const BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
@@ -149,16 +174,6 @@ class _ScrollableDraggableBottomSheetState extends State<ScrollableDraggableBott
           _heightTween.end = widget.maxHeight;
         }
       }
-    }
-
-    // Check multiple factors to enable scrolling
-    // * 1. animation contoller is completely open
-    // * 2. _heightTween == maxHeight which checks it's total open position and not the snap point
-    // * 3. check primary delta which when negative which means user tried to scroll upwards
-    if (_animationController.value >= _animationController.upperBound && details.primaryDelta! < 0) {
-      setState(() {
-        _scrollPhysics = const BouncingScrollPhysics();
-      });
     }
 
     _animationController.value -= details.primaryDelta! / _heightAnimation.value;
@@ -216,6 +231,7 @@ class _ScrollableDraggableBottomSheetState extends State<ScrollableDraggableBott
       }
     }
 
+    _sheetMode = SheetMode.noSnap;
     if (child != null) setState(() => _selectedChild = child);
   }
 
@@ -229,6 +245,7 @@ class _ScrollableDraggableBottomSheetState extends State<ScrollableDraggableBott
       _animationController.animateTo(0, duration: duration, curve: curve);
     }
 
+    _sheetMode = SheetMode.snap;
     if (child != null) setState(() => _selectedChild = child);
   }
 }

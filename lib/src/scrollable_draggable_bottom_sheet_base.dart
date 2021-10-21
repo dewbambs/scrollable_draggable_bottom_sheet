@@ -257,9 +257,19 @@ class _ScrollableDraggableBottomSheetState extends State<ScrollableDraggableBott
       _heightTween.end = widget.minHeight;
       _animationController.animateTo(1, duration: duration, curve: curve);
     } else {
-      _heightTween.begin = widget.minHeight;
-      _animationController.animateTo(0, duration: duration, curve: curve);
+      // to bring the height to minimum height
+      // if the animation is completed change end as changing the begin will cause abrupt change
+      if (!_animationController.isCompleted) {
+        _heightTween.end = widget.minHeight;
+        _animationController.animateTo(1, duration: duration, curve: curve);
+      } else {
+        // else change begin
+        _heightTween.begin = widget.minHeight;
+        _animationController.animateTo(0, duration: duration, curve: curve);
+      }
       if (duration != null) await Future.delayed(duration);
+      _heightTween.begin = widget.minHeight;
+      _animationController.reset();
       _heightTween.end = widget.snapHeight;
     }
 
@@ -270,6 +280,9 @@ class _ScrollableDraggableBottomSheetState extends State<ScrollableDraggableBott
   _openSheet({Duration? duration, Curve curve = Curves.linear}) {
     _heightTween.end = widget.maxHeight;
     _animationController.animateTo(1, duration: duration, curve: curve);
+    if (_sheetMode == SheetMode.snap) {
+      _heightTween.begin = widget.snapHeight;
+    } else {}
   }
 }
 

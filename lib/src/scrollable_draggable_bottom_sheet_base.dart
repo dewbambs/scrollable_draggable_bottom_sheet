@@ -25,7 +25,7 @@ class ScrollableDraggableBottomSheet extends StatefulWidget {
   final double minHeight;
 
   /// [snapHeight] as height of screen
-  final double? snapHeight;
+  final double snapHeight;
 
   final double maxHeight;
 
@@ -72,7 +72,7 @@ class _ScrollableDraggableBottomSheetState extends State<ScrollableDraggableBott
     _selectedChild = widget.initialChild;
 
     currentMin = widget.minHeight;
-    currentMax = widget.snapHeight ?? widget.maxHeight;
+    currentMax = widget.snapHeight;
 
     _animationController = AnimationController(vsync: this, duration: const Duration(milliseconds: 800))
       ..addListener(() {
@@ -93,17 +93,23 @@ class _ScrollableDraggableBottomSheetState extends State<ScrollableDraggableBott
         // start the scrolling
         if (_sheetMode == SheetMode.snap) {
           if (widget.maxHeight == _heightAnimation.value) {
-            _scrollcontroller.animateTo(1, duration: const Duration(milliseconds: 1), curve: Curves.linear);
-            setState(() => _scrollPhysics = const BouncingScrollPhysics());
+            if (_scrollPhysics is! BouncingScrollPhysics) {
+              setState(() => _scrollPhysics = const BouncingScrollPhysics());
+            }
           } else {
-            setState(() => _scrollPhysics = const NeverScrollableScrollPhysics());
+            if (_scrollPhysics is! NeverScrollableScrollPhysics) {
+              setState(() => _scrollPhysics = const NeverScrollableScrollPhysics());
+            }
           }
         } else {
           if (_animationController.isCompleted) {
-            _scrollcontroller.animateTo(1, duration: const Duration(milliseconds: 1), curve: Curves.linear);
-            setState(() => _scrollPhysics = const BouncingScrollPhysics());
+            if (_scrollPhysics is! BouncingScrollPhysics) {
+              setState(() => _scrollPhysics = const BouncingScrollPhysics());
+            }
           } else {
-            setState(() => _scrollPhysics = const NeverScrollableScrollPhysics());
+            if (_scrollPhysics is! NeverScrollableScrollPhysics) {
+              setState(() => _scrollPhysics = const NeverScrollableScrollPhysics());
+            }
           }
         }
       });
@@ -116,10 +122,9 @@ class _ScrollableDraggableBottomSheetState extends State<ScrollableDraggableBott
         // Check condition to stop the scroll and activate gesture detection
         if (_animationController.value < _animationController.upperBound ||
             _scrollcontroller.offset <= _scrollcontroller.position.minScrollExtent) {
-          _scrollcontroller.animateTo(0, duration: const Duration(milliseconds: 1), curve: Curves.linear);
-          setState(() {
-            _scrollPhysics = const NeverScrollableScrollPhysics();
-          });
+          if (_scrollPhysics is! NeverScrollableScrollPhysics) {
+            setState(() => _scrollPhysics = const NeverScrollableScrollPhysics());
+          }
         }
       });
 
@@ -248,17 +253,23 @@ class _ScrollableDraggableBottomSheetState extends State<ScrollableDraggableBott
   }
 
   _animateBackToSnap({Duration? duration, Curve curve = Curves.linear, Widget? child}) async {
-    assert(widget.snapHeight != null, 'cannot animate back to snap as snap position not available');
-    if (_heightAnimation.value < widget.snapHeight) {
-      _heightTween.end = widget.snapHeight!;
+    if (_heightAnimation.value < widget.minHeight) {
+      _heightTween.end = widget.minHeight;
       _animationController.animateTo(1, duration: duration, curve: curve);
     } else {
-      _heightTween.begin = widget.snapHeight!;
+      _heightTween.begin = widget.minHeight;
       _animationController.animateTo(0, duration: duration, curve: curve);
+      if (duration != null) await Future.delayed(duration);
+      _heightTween.end = widget.snapHeight;
     }
 
     _sheetMode = SheetMode.snap;
     if (child != null) setState(() => _selectedChild = child);
+  }
+
+  _openSheet({Duration? duration, Curve curve = Curves.linear}) {
+    _heightTween.end = widget.maxHeight;
+    _animationController.animateTo(1, duration: duration, curve: curve);
   }
 }
 
@@ -288,5 +299,9 @@ class ScrollableDraggableBottomSheetController {
 
   Future<void> animateBackToSnap({Duration? duration, Curve curve = Curves.linear, Widget? child}) {
     return _scrollableDraggableBottomSheetState?._animateBackToSnap(duration: duration, curve: curve, child: child);
+  }
+
+  void openSheet({Duration? duration, Curve curve = Curves.linear}) {
+    _scrollableDraggableBottomSheetState?._openSheet(duration: duration, curve: curve);
   }
 }

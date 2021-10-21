@@ -88,9 +88,19 @@ class _MyHomePageState extends State<MyHomePage> {
             child: ElevatedButton(
               onPressed: () async {
                 _controller.animateBackToSnap(
-                    duration: const Duration(milliseconds: 600), curve: Curves.easeInOut, child: initialChild);
+                    duration: const Duration(milliseconds: 300), curve: Curves.easeOutBack, child: initialChild);
               },
               child: const Text("Snap mode"),
+            ),
+          ),
+          Positioned(
+            top: 60,
+            right: 60,
+            child: ElevatedButton(
+              onPressed: () async {
+                _controller.openSheet(duration: const Duration(milliseconds: 300), curve: Curves.easeOutBack);
+              },
+              child: const Text("open sheet"),
             ),
           ),
           Positioned(bottom: _value, right: 20, child: IconButton(onPressed: () {}, icon: const Icon(Icons.ac_unit))),

@@ -106,21 +106,38 @@ class _MyHomePageState extends State<MyHomePage> {
           Positioned(bottom: _value, right: 20, child: IconButton(onPressed: () {}, icon: const Icon(Icons.ac_unit))),
           ScrollableDraggableBottomSheet(
             controller: _controller,
-            minHeight: MediaQuery.of(context).size.height * 0.2,
-            snapHeight: MediaQuery.of(context).size.height * 0.4,
+            minHeight: MediaQuery.of(context).size.height * 0.1,
+            snapHeights: [MediaQuery.of(context).size.height * 0.3, MediaQuery.of(context).size.height * 0.5],
             maxHeight: MediaQuery.of(context).size.height * 0.8,
-            onPanelSlideFromSnapPointToMax: (value) {
-              // print("the value of this is ------------------> $value");
-            },
-            onPanelSlide: (value) {
+            onPanelSlide: (height, value) {
               setState(() {
-                _value = value + 20;
+                _value = height + 20;
               });
             },
-            onPanelSlideWithoutSnap: (value) {
-              print("the value of this non snap is ---------> $value");
+            onPanelSlideWithoutSnap: (height, value) {
+              print("the value of this non snap is ---------> $value, $height");
             },
+            snappingListener: SnappingListener(
+              fromIndex: 0,
+              toIndex: 2,
+              onPanleSlide: (height, value) {
+                print("in the state of 1 & 2");
+              },
+            ),
             initialChild: initialChild,
+            header: Container(
+              height: 20,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+              ),
+            ),
+            headerHeight: 20,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+              boxShadow: [BoxShadow(color: Color.fromRGBO(0, 0, 0, 0.5), blurRadius: 4, offset: Offset(0, -2))],
+            ),
           ),
         ],
       ),

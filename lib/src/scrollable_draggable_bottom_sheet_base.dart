@@ -392,6 +392,8 @@ class _ScrollableDraggableBottomSheetState extends State<ScrollableDraggableBott
 
     if (_sheetMode == SheetMode.snap && _heightAnimation.value != newPosition) {
       if (_heightAnimation.value > newPosition) {
+        _heightTween.end = _heightAnimation.value;
+        _animationController.value = 1;
         _heightTween.begin = newPosition;
         _animationController.animateTo(0, duration: duration, curve: curve);
       } else {
@@ -403,7 +405,12 @@ class _ScrollableDraggableBottomSheetState extends State<ScrollableDraggableBott
 
       // when position is [widget.maxHeight], we need to provide lowerbound so to return to the last snap position.
       // if this is not provided the sheet will no longer be snap sheet
-      if (position == widget.snapHeights.length + 1) _heightTween.begin = widget.snapHeights.last;
+      // similar approach for [widget.minHeight]
+      if (position == widget.snapHeights.length + 1) {
+        _heightTween.begin = widget.snapHeights.last;
+      } else if (position == 0) {
+        _heightTween.end = widget.snapHeights.first;
+      }
     }
   }
 }

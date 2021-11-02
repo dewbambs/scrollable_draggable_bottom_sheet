@@ -100,7 +100,7 @@ class _MyHomePageState extends State<MyHomePage> {
               onPressed: () async {
                 // _controller.openSheet(duration: const Duration(milliseconds: 300), curve: Curves.easeOutBack);
                 _controller.jumpToPosition(
-                    position: 2, duration: const Duration(milliseconds: 300), curve: Curves.easeOutBack);
+                    position: 0, duration: const Duration(milliseconds: 300), curve: Curves.easeOutBack);
               },
               child: const Text("open sheet"),
             ),
@@ -128,17 +128,31 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             initialChild: initialChild,
             header: Container(
-              height: 20,
               decoration: const BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
               ),
+              child: Column(
+                children: [
+                  const SizedBox(height: 16),
+                  Center(
+                    child: Container(
+                      height: 5,
+                      width: 100,
+                      decoration: BoxDecoration(color: Colors.lightGreen, borderRadius: BorderRadius.circular(100)),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
             ),
-            headerHeight: 20,
+            headerHeight: 37,
             decoration: const BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-              boxShadow: [BoxShadow(color: Color.fromRGBO(0, 0, 0, 0.5), blurRadius: 4, offset: Offset(0, -2))],
+              boxShadow: [
+                BoxShadow(color: Color.fromRGBO(0, 0, 0, 0.5), blurRadius: 4, offset: Offset(0, -2)),
+              ],
             ),
           ),
         ],

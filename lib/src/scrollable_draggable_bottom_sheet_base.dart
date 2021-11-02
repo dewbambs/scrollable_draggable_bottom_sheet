@@ -24,6 +24,7 @@ class SnappingListener {
   OnPanelSlide onPanleSlide;
 }
 
+// App deletegate to stick the header at the top
 class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
   _SliverAppBarDelegate({required Widget child, required double minExtent, required double maxExtent})
       : _child = child,
@@ -89,12 +90,12 @@ class ScrollableDraggableBottomSheet extends StatefulWidget {
 
   final Duration switchChildDuration;
 
-  /// provide a min and max index between 0..[snapHeights.length]+2
+  /// provide a min and max index between 0..[snapHeights.length]+1
   /// and add [OnPanelSlide] callback to add action.
   /// provides a listener between the given two indexs
   ///
   /// helps to add listener for defined range
-  /// from 0 i.e. the [minHeight] to [snapHeights.length]+2 which is maxHeight
+  /// from 0 i.e. the [minHeight] to [snapHeights.length]+1 which is maxHeight
   /// 1,2,3 are respective index for [snapHeights] array
   final SnappingListener? snappingListener;
 
@@ -141,7 +142,7 @@ class _ScrollableDraggableBottomSheetState extends State<ScrollableDraggableBott
     _animationController = AnimationController(vsync: this, duration: const Duration(milliseconds: 800))
       ..addListener(() {
         // Listener for defined index of snap, it includes [minHeight] at index 0.
-        // And [maxHeight] at index [snapHeights.length + 2]
+        // And [maxHeight] at index [snapHeights.length + 1]
         if (widget.snappingListener != null && widget.snapHeights.isNotEmpty) {
           final lowerBound = widget.snappingListener!.fromIndex == 0
               ? widget.minHeight
@@ -379,12 +380,31 @@ class _ScrollableDraggableBottomSheetState extends State<ScrollableDraggableBott
     if (child != null) setState(() => _selectedChild = child);
   }
 
-  _openSheet({Duration? duration, Curve curve = Curves.linear}) {
-    _heightTween.end = widget.maxHeight;
-    _animationController.animateTo(1, duration: duration, curve: curve);
-    if (_sheetMode == SheetMode.snap) {
-      _heightTween.begin = widget.snapHeights[0];
-    } else {}
+  _jumpToPosition({required int position, Duration? duration, Curve curve = Curves.linear}) {
+    double newPosition;
+    if (position == widget.snapHeights.length + 1) {
+      newPosition = widget.maxHeight;
+    } else if (position == 0) {
+      newPosition = widget.minHeight;
+    } else {
+      newPosition = widget.snapHeights[position - 1];
+    }
+
+    if (_sheetMode == SheetMode.snap && _heightAnimation.value != newPosition) {
+      if (_heightAnimation.value > newPosition) {
+        _heightTween.begin = newPosition;
+        _animationController.animateTo(0, duration: duration, curve: curve);
+      } else {
+        _heightTween.begin = _heightAnimation.value;
+        _animationController.reset();
+        _heightTween.end = newPosition;
+        _animationController.animateTo(1, duration: duration, curve: curve);
+      }
+
+      // when position is [widget.maxHeight], we need to provide lowerbound so to return to the last snap position.
+      // if this is not provided the sheet will no longer be snap sheet
+      if (position == widget.snapHeights.length + 1) _heightTween.begin = widget.snapHeights.last;
+    }
   }
 }
 
@@ -416,7 +436,7 @@ class ScrollableDraggableBottomSheetController {
     return _scrollableDraggableBottomSheetState?._animateBackToSnap(duration: duration, curve: curve, child: child);
   }
 
-  void openSheet({Duration? duration, Curve curve = Curves.linear}) {
-    _scrollableDraggableBottomSheetState?._openSheet(duration: duration, curve: curve);
+  void jumpToPosition({required int position, Duration? duration, Curve curve = Curves.linear}) {
+    _scrollableDraggableBottomSheetState?._jumpToPosition(position: position, duration: duration, curve: curve);
   }
 }

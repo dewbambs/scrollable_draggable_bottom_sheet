@@ -98,7 +98,9 @@ class _MyHomePageState extends State<MyHomePage> {
             right: 60,
             child: ElevatedButton(
               onPressed: () async {
-                _controller.openSheet(duration: const Duration(milliseconds: 300), curve: Curves.easeOutBack);
+                // _controller.openSheet(duration: const Duration(milliseconds: 300), curve: Curves.easeOutBack);
+                _controller.jumpToPosition(
+                    position: 2, duration: const Duration(milliseconds: 300), curve: Curves.easeOutBack);
               },
               child: const Text("open sheet"),
             ),
@@ -108,7 +110,7 @@ class _MyHomePageState extends State<MyHomePage> {
             controller: _controller,
             minHeight: MediaQuery.of(context).size.height * 0.1,
             snapHeights: [MediaQuery.of(context).size.height * 0.3, MediaQuery.of(context).size.height * 0.5],
-            maxHeight: MediaQuery.of(context).size.height * 0.8,
+            maxHeight: MediaQuery.of(context).size.height * 0.9,
             onPanelSlide: (height, value) {
               setState(() {
                 _value = height + 20;

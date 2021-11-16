@@ -32,35 +32,68 @@ class _MyHomePageState extends State<MyHomePage> {
 
   double _value = 200;
 
+  late ScrollController _scrollController;
+
   @override
   void initState() {
     super.initState();
     _controller = ScrollableDraggableBottomSheetController();
+    _scrollController = ScrollController();
   }
 
   @override
   Widget build(BuildContext context) {
-    Widget initialChild = ListView.builder(
-      primary: false,
-      shrinkWrap: true,
-      itemCount: 10,
-      itemBuilder: (context, index) => const ListTile(
-        title: Text("test text"),
-        isThreeLine: true,
-        subtitle: Text("subtitle"),
-      ),
-    );
+    Widget initialChild(ScrollController sc, ScrollPhysics physics) => ListView.builder(
+          primary: false,
+          physics: physics,
+          shrinkWrap: true,
+          controller: sc,
+          itemCount: 10,
+          itemBuilder: (context, index) => const ListTile(
+            title: Text("first screen"),
+            isThreeLine: true,
+            subtitle: Text("1st subtitle"),
+          ),
+        );
 
-    Widget _secondChild = ListView.builder(
-      primary: false,
-      shrinkWrap: true,
-      itemCount: 10,
-      itemBuilder: (context, index) => const ListTile(
-        title: Text("second screen"),
-        isThreeLine: true,
-        subtitle: Text("2nd subtitle"),
-      ),
-    );
+    Widget _secondChild(ScrollController sc, ScrollPhysics physics) => ConstrainedBox(
+          constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.9 - MediaQuery.of(context).size.height * 0.1),
+          child: ListView(
+            primary: false,
+            physics: const NeverScrollableScrollPhysics(),
+            children: [
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                    maxHeight:
+                        MediaQuery.of(context).size.height * 0.9 - MediaQuery.of(context).size.height * 0.1 - 20),
+                child: Scaffold(
+                  bottomNavigationBar: Container(
+                    height: 64,
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                    child: ElevatedButton(
+                      onPressed: () {},
+                      child: const Text("button"),
+                    ),
+                  ),
+                  body: ListView.builder(
+                    // primary: false,
+                    controller: sc,
+                    physics: physics,
+                    shrinkWrap: true,
+                    itemCount: 10,
+                    itemBuilder: (context, index) => const ListTile(
+                      title: Text("second screen"),
+                      isThreeLine: true,
+                      subtitle: Text("2nd subtitle"),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+    ;
 
     return Scaffold(
       body: Stack(
@@ -76,7 +109,6 @@ class _MyHomePageState extends State<MyHomePage> {
                   maxHeight: MediaQuery.of(context).size.height * 0.85,
                   duration: const Duration(milliseconds: 600),
                   curve: Curves.easeInOut,
-                  child: _secondChild,
                 );
               },
               child: const Text("No snap"),
@@ -87,8 +119,7 @@ class _MyHomePageState extends State<MyHomePage> {
             right: 20,
             child: ElevatedButton(
               onPressed: () async {
-                _controller.animateBackToSnap(
-                    duration: const Duration(milliseconds: 300), curve: Curves.easeOutBack, child: initialChild);
+                _controller.animateBackToSnap(duration: const Duration(milliseconds: 300), curve: Curves.easeOutBack);
               },
               child: const Text("Snap mode"),
             ),
@@ -111,22 +142,24 @@ class _MyHomePageState extends State<MyHomePage> {
             minHeight: MediaQuery.of(context).size.height * 0.1,
             snapHeights: [MediaQuery.of(context).size.height * 0.3, MediaQuery.of(context).size.height * 0.5],
             maxHeight: MediaQuery.of(context).size.height * 0.9,
-            onPanelSlide: (height, value) {
+            onPanelSlide: (height, value, state) {
               setState(() {
                 _value = height + 20;
               });
             },
-            onPanelSlideWithoutSnap: (height, value) {
+            onPanelSlideWithoutSnap: (height, value, state) {
               print("the value of this non snap is ---------> $value, $height");
             },
             snappingListener: SnappingListener(
               fromIndex: 0,
               toIndex: 2,
-              onPanleSlide: (height, value) {
+              onPanleSlide: (height, value, state) {
                 print("in the state of 1 & 2");
               },
             ),
-            initialChild: initialChild,
+            // initialChild: initialChild,
+            primaryChild: (sc, physics) => initialChild(sc, physics),
+            secondaryChild: (sc, physics) => _secondChild(sc, physics),
             header: Container(
               decoration: const BoxDecoration(
                 color: Colors.white,
